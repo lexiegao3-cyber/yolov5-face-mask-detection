@@ -53,25 +53,38 @@ The following three figures were generated directly from the local 100-epoch tra
 | :-: | :-: | :-: |
 | <p align="center"> <img src="results/results.png"/></p> | <p align="center"> <img src="results/confusion_matrix.png"/></p> | <p align="center"> <img src="results/PR_curve.png"/></p> |
 
-The following metrics were measured on the valid dataset containing 171 images. High precision and recall scores were obtained on `with mask` and `without mask` classes. However, the performance on `mask weared incorrectly` class was poor due to the imbalanced data.
+The run-level metrics below are read from `results.csv` for the 171-image validation set. The final epoch is epoch 99; the highest recorded mAP@0.5 is 0.90501 at epoch 77.
 
-| Class | #Labels | Precision | Recall | mAP<sup>val<br>0.5 | mAP<sup>val<br>0.5:0.95 |
-| :-: | :-: | :-: | :-: | :-: | :-: |
-| `with mask` | 630 | 0.94 | 0.9 | 0.95 | 0.64 |
-| `without mask` | 104 | 0.86 | 0.82 |  0.9 |  0.6 |
-| `mask weared incorrectly` | 20 | 0.72 | 0.3 | 0.43 | 0.24 |
-| `total` | 754 | 0.84 | 0.67 | 0.76 | 0.49 |
+| Evaluation point | Precision | Recall | mAP@0.5 | mAP@0.5:0.95 |
+| :-: | :-: | :-: | :-: | :-: |
+| Final epoch (99) | 0.92953 | 0.82739 | 0.89554 | 0.58546 |
+| Best mAP@0.5 (epoch 77) | 0.94476 | 0.82068 | 0.90501 | 0.58664 |
+
+#### Training Output Files in Production Order
+
+The following list follows the stages in which YOLOv5 produces the artifacts in `yolov5/runs/train/mask_100epochs/`. The `results.csv` file is the numeric source for the curves, while the PNG/JPG files are visual summaries of the same run.
+
+| Order | Files | Explanation |
+| :-: | :- | :- |
+| 1 | `opt.yaml`, `hyp.yaml` | Record the command-line options and hyperparameters used by this run, including 100 epochs, 640 image size, batch size 16, CPU device, and the dataset/weight paths. |
+| 2 | `labels.jpg`, `labels_correlogram.jpg` | Summarize the training labels before optimization: class/box distributions and spatial relationships. These reveal class imbalance and whether annotations are concentrated in particular image regions. |
+| 3 | `train_batch0.jpg`, `train_batch1.jpg`, `train_batch2.jpg` | Show representative training batches after YOLOv5 data loading and augmentation. They are useful for checking that images, boxes, and class labels are aligned. |
+| 4 | `results.csv` | Stores one row per epoch (100 rows plus the header) with training losses, validation losses, precision, recall, mAP@0.5, mAP@0.5:0.95, and learning rates. It is the most precise source for numerical analysis. |
+| 5 | `weights/best.pt`, `weights/last.pt` | `best.pt` is the checkpoint with the best validation fitness; `last.pt` is the checkpoint saved at the end of epoch 99. For deployment, `best.pt` is normally preferred. |
+| 6 | `val_batch0_labels.jpg`, `val_batch1_labels.jpg`, `val_batch2_labels.jpg` | Display ground-truth boxes for representative validation batches. They provide the reference used to judge predictions. |
+| 7 | `val_batch0_pred.jpg`, `val_batch1_pred.jpg`, `val_batch2_pred.jpg` | Display the model's predictions on the same validation batches. Comparing these with the preceding label images makes missed detections and class confusions visible. |
+| 8 | `confusion_matrix.png` | Aggregates class-level errors. The diagonal cells show correct classifications; off-diagonal cells show confusion between `with_mask`, `without_mask`, and `mask_weared_incorrect`, while the background row/column reflects missed or extra detections. |
+| 9 | `PR_curve.png` | Plots precision against recall across confidence thresholds. In this run, the legend reports AP values of approximately 0.965 for `with_mask`, 0.925 for `without_mask`, 0.805 for `mask_weared_incorrect`, and 0.899 mAP@0.5 overall. |
+| 10 | `P_curve.png`, `R_curve.png`, `F1_curve.png` | Show how precision, recall, and F1 score change as the confidence threshold changes. They help select an operating threshold for the intended application. |
+| 11 | `results.png` | Final compact dashboard containing the training/validation losses, precision, recall, mAP@0.5, and mAP@0.5:0.95 curves. In this report it is the primary training-convergence figure. |
+
+The loss curves decrease throughout training, while precision, recall, and mAP rise rapidly in the early epochs and then stabilize. The remaining gap between mAP@0.5 and mAP@0.5:0.95 indicates that stricter localization thresholds remain more difficult, especially for small or partially occluded faces.
 
 ### Real-World Testing & Failure Case Analysis
 
 After training YOLOv5s for 100 epochs, the model achieved strong performance on the validation set:
 
-| Metric | Score |
-|---|---:|
-| Precision | 0.914 |
-| Recall | 0.851 |
-| mAP@0.5 | 0.899 |
-| mAP@0.5:0.95 | 0.592 |
+The final-epoch metrics are 0.92953 precision, 0.82739 recall, 0.89554 mAP@0.5, and 0.58546 mAP@0.5:0.95; the best mAP@0.5 recorded during training is 0.90501 at epoch 77. These values describe validation performance, while the cases below are qualitative tests on unseen real-world images.
 
 The model performed particularly well on clearly visible faces under conditions similar to the training data. However, testing on unseen real-world images revealed several challenging cases. These examples highlight an important distinction between validation performance and real-world robustness.
 
@@ -125,7 +138,7 @@ These failure cases indicate that the model's primary limitation is not classify
 
 #### Takeaway
 
-The final YOLOv5s model achieved **0.914 Precision, 0.851 Recall, and 0.899 mAP@0.5** on the validation set after 100 epochs. Real-world testing showed good generalization when faces are clearly visible, while small faces, crowding, occlusion, low illumination, headgear, and domain shift can still cause missed detections and incorrect classifications. Reliable object-detector evaluation therefore requires both quantitative metrics and qualitative analysis of real-world failure cases.
+The final YOLOv5s model achieved **0.92953 Precision, 0.82739 Recall, and 0.89554 mAP@0.5** on the validation set after 100 epochs, with a best mAP@0.5 of **0.90501** at epoch 77. Real-world testing showed good generalization when faces are clearly visible, while small faces, crowding, occlusion, low illumination, headgear, and domain shift can still cause missed detections and incorrect classifications. Reliable object-detector evaluation therefore requires both quantitative metrics and qualitative analysis of real-world failure cases.
 
 #### Ground Truths vs Predictions
 
