@@ -1,0 +1,13 @@
+# Local datasets and downloaded archives
+datasets/
+*.zip
+
+# Cloned training dependency and generated caches
+yolov5/
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Local experiment outputs
+runs/
+ip
