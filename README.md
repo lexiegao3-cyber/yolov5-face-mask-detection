@@ -45,17 +45,13 @@ python detect.py --source ../datasets/input.mp4 --weights ../models/mask_yolov5.
 ### Results
 The following charts were obtained after training YOLOv5s with input size 640x640 on the `Face Mask` dataset for 100 epochs.
 
-<p align="center">
-  <img src="results/loss_curve.png" />
-</p>
-
 #### Training Result Curves
 
-Precision-Recall (PR) measures the accuracy of bounding box overlap between predicted bboxes and ground truth bboxes. The three curves below summarize the detector's precision, recall, and precision-recall performance.
+The following three figures were generated directly from the local 100-epoch training run at `yolov5/runs/train/mask_100epochs/`. They show the training and validation curves, the confusion matrix, and the precision-recall performance of the trained detector.
 
-| Precision Curve | Recall Curve | PR Curve |
+| Training Results | Confusion Matrix | Precision-Recall Curve |
 | :-: | :-: | :-: |
-| <p align="center"> <img src="results/P_curve.png"/></p> | <p align="center"> <img src="results/R_curve.png"/></p> | <p align="center"> <img src="results/PR_curve.png"/></p> |
+| <p align="center"> <img src="results/results.png"/></p> | <p align="center"> <img src="results/confusion_matrix.png"/></p> | <p align="center"> <img src="results/PR_curve.png"/></p> |
 
 The following metrics were measured on the valid dataset containing 171 images. High precision and recall scores were obtained on `with mask` and `without mask` classes. However, the performance on `mask weared incorrectly` class was poor due to the imbalanced data.
 
